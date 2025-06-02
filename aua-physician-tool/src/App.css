@@ -1,0 +1,141 @@
+#root {
+  width: 100vw;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+.Main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 480px;
+  width: 95vw;
+  gap: 48px;
+}
+
+.UserInputSection {
+  display: flex;
+  flex-direction: column;
+  padding-top: 36px;
+  gap: 36px;
+}
+
+.Card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.TextAreaInput {
+  height: 12em;
+  resize: none;
+}
+
+.InputList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.InputListItem {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  height: 48px;
+}
+
+select {
+  flex-grow: 1;
+}
+
+.AddButton {
+  display: flex;
+  justify-content: center;
+  width: 20%;
+}
+
+.PrimaryCta {
+  background-color: #4750ff;
+  color: #f0f0f0;
+  padding: 24px;
+
+  &:active {
+    background-color: #636bfc;
+  }
+}
+
+.SecondaryCta {
+  background-color: inherit;
+  color: #8f8f9d;
+  border: 1px solid #444;
+
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+
+  &:hover {
+    border: 1px solid #8f8f9d;
+  }
+}
+
+.GhostCta {
+  background-color: inherit;
+  color: #8f8f9d;
+  padding: 8px;
+
+  &:disabled {
+    background-color: #242424;
+    color: #444;
+  }
+
+  &:hover {
+    border: 1px solid #444;
+  }
+
+  &:hover:disabled,
+  &:focus:disabled,
+  &:focus-visible:disabled {
+    border: 1px solid #242424;
+    outline: none;
+  }
+}
+
+.Result {
+  padding: 48px;
+  border-radius: 4px;
+  border: 4px solid;
+}
+
+.Danger1 {
+  color: #5a1e1e;
+  background-color: #f8d7da; /* Soft Faded Red */
+  border-color: #dc3545;
+}
+
+.Danger2 {
+  color: #663c1f;
+  background-color: #ffe5d5; /* Faded Orange */
+  border-color: #e07b39;
+}
+
+.Danger3 {
+  color: #5a5a1e;
+  background-color: #fff9c4; /* Faded Yellow */
+  border-color: #d6c12a;
+}
+
+.Danger4 {
+  color: #1e5a1e;
+  background-color: #dff0d8; /* Faded Green */
+  border-color: #4cae4f;
+}
+
+.ResultPlaceholder {
+  height: 96px;
+}
+
+.ScrollThreshold {
+  height: 96px;
+}
