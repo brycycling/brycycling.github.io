@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Handover Summary</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Patient Handover Summary</h1>
+        <form id="handoverForm">
+            <section class="form-section">
+                <h2>Basic Information</h2>
+                <div class="form-group">
+                    <label for="age">Age:</label>
+                    <input type="number" id="age" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Gender:</label>
+                    <select id="gender" required>
+                        <option value="">Select</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="livingSituation">Living Situation:</label>
+                    <input type="text" id="livingSituation" required>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h2>Psychiatric History</h2>
+                <div class="form-group">
+                    <label for="psychHistory">History:</label>
+                    <textarea id="psychHistory" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followUp">Follow-up:</label>
+                    <textarea id="followUp" rows="2"></textarea>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h2>Presentation</h2>
+                <div class="form-group">
+                    <label for="reason">Reason for Presentation:</label>
+                    <textarea id="reason" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="method">Method of Presentation:</label>
+                    <select id="method" required>
+                        <option value="">Select</option>
+                        <option value="self-referral">Self-referral</option>
+                        <option value="emergency">Emergency</option>
+                        <option value="referral">Referral</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hospitalPresentation">Presentation in Hospital:</label>
+                    <textarea id="hospitalPresentation" rows="3" required></textarea>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h2>Assessment</h2>
+                <div class="form-group">
+                    <label for="impression">Impression:</label>
+                    <textarea id="impression" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="admitType">Admission Type:</label>
+                    <select id="admitType" required>
+                        <option value="">Select</option>
+                        <option value="voluntary">Voluntary</option>
+                        <option value="involuntary">Involuntary</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="certification">Certification:</label>
+                    <select id="certification" required>
+                        <option value="">Select</option>
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h2>Treatment Plan</h2>
+                <div class="form-group">
+                    <label for="medication">Start Medication:</label>
+                    <textarea id="medication" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="collateral">Collateral Information:</label>
+                    <textarea id="collateral" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="los">Anticipated LOS (days):</label>
+                    <input type="number" id="los">
+                </div>
+            </section>
+
+            <button type="submit" class="submit-btn">Generate Summary</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
