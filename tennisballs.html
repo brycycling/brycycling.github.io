@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Ball Cost Monitor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 90%; /* Responsive width */
+            width: 1000px; /* Max width for larger screens */
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 30px;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #334155; /* Slate 700 */
+        }
+        .input-group input {
+            padding: 10px 15px;
+            border: 1px solid #cbd5e1; /* Slate 300 */
+            border-radius: 8px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6; /* Blue 500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* Blue 500 */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* Blue 600 */
+            transform: translateY(-1px);
+        }
+        table {
+            width: 100%;
+            border-collapse: separate; /* Use separate for rounded corners on cells */
+            border-spacing: 0;
+            overflow: hidden; /* Ensures rounded corners are applied */
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Slate 200 */
+        }
+        th {
+            background-color: #f1f5f9; /* Slate 100 */
+            color: #475569; /* Slate 600 */
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc; /* Slate 50 */
+        }
+        /* Rounded corners for table */
+        table thead tr:first-child th:first-child {
+            border-top-left-radius: 8px;
+        }
+        table thead tr:first-child th:last-child {
+            border-top-right-radius: 8px;
+        }
+        table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 8px;
+        }
+        table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 8px;
+        }
+        .total-row td {
+            font-weight: 700;
+            background-color: #e0f2fe; /* Light blue background for total */
+            color: #1e40af; /* Darker blue text */
+            border-top: 2px solid #93c5fd; /* Blue 300 */
+        }
+        .message-box {
+            background-color: #fefcbf; /* Yellow 100 */
+            border: 1px solid #fbd38d; /* Yellow 300 */
+            color: #9c4221; /* Yellow 900 */
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8 flex justify-center items-start min-h-screen">
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+            🎾 Tennis Ball Cost Monitor
+        </h1>
+
+        <!-- Input Form -->
+        <div class="bg-blue-50 p-6 rounded-xl shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add New Entry</h2>
+            <div id="messageBox" class="message-box"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="input-group">
+                    <label for="entryDate" class="block text-sm mb-1">Date</label>
+                    <input type="date" id="entryDate" class="shadow-sm">
+                </div>
+                <div class="input-group">
+                    <label for="brand" class="block text-sm mb-1">Brand</label>
+                    <input type="text" id="brand" placeholder="e.g., Wilson, Dunlop" class="shadow-sm">
+                </div>
+                <div class="input-group">
+                    <label for="quantity" class="block text-sm mb-1">Quantity (Cans)</label>
+                    <input type="number" id="quantity" min="1" value="1" class="shadow-sm">
+                </div>
+                <div class="input-group">
+                    <label for="pricePerCan" class="block text-sm mb-1">Price Per Can ($)</label>
+                    <input type="number" id="pricePerCan" min="0.01" step="0.01" value="5.00" class="shadow-sm">
+                </div>
+            </div>
+            <button id="addEntryBtn" class="btn-primary w-full md:w-auto">Add Entry</button>
+        </div>
+
+        <!-- Cost Table -->
+        <div class="bg-white p-6 rounded-xl shadow-md overflow-x-auto">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Cost Overview</h2>
+            <table class="min-w-full bg-white rounded-lg shadow-inner">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Brand</th>
+                        <th>Quantity</th>
+                        <th>Price/Can</th>
+                        <th>Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody id="costTableBody">
+                    <!-- Data rows will be inserted here by JavaScript -->
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="4" class="text-right">Overall Total:</td>
+                        <td id="overallTotal">$0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class="text-center mt-6">
+                <button id="clearDataBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg shadow-md transition duration-200">
+                    Clear All Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const entryDateInput = document.getElementById('entryDate');
+        const brandInput = document.getElementById('brand');
+        const quantityInput = document.getElementById('quantity');
+        const pricePerCanInput = document.getElementById('pricePerCan');
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const costTableBody = document.getElementById('costTableBody');
+        const overallTotalSpan = document.getElementById('overallTotal');
+        const messageBox = document.getElementById('messageBox');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+
+        let totalCost = 0; // Variable to store the running total
+
+        /**
+         * Shows a message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message (e.g., 'success', 'error', 'warning').
+         */
+        function showMessage(message, type = 'warning') {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            // Optional: Add specific classes for different message types
+            messageBox.className = 'message-box'; // Reset classes
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            } else { // Default to warning
+                messageBox.classList.add('bg-yellow-100', 'border-yellow-400', 'text-yellow-700');
+            }
+
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000); // Hide after 3 seconds
+        }
+
+        /**
+         * Updates the overall total displayed on the page.
+         */
+        function updateOverallTotal() {
+            overallTotalSpan.textContent = `$${totalCost.toFixed(2)}`;
+        }
+
+        /**
+         * Adds a new row to the table with the provided data.
+         * @param {string} date - The date of the entry.
+         * @param {string} brand - The brand of tennis balls.
+         * @param {number} quantity - The quantity of cans.
+         * @param {number} pricePerCan - The price per can.
+         * @param {number} rowTotal - The calculated total cost for this row.
+         */
+        function addTableRow(date, brand, quantity, pricePerCan, rowTotal) {
+            const row = costTableBody.insertRow(); // Insert a new row at the end of the tbody
+
+            // Create and append cells for each data point
+            const dateCell = row.insertCell();
+            dateCell.textContent = date;
+
+            const brandCell = row.insertCell();
+            brandCell.textContent = brand;
+
+            const quantityCell = row.insertCell();
+            quantityCell.textContent = quantity;
+
+            const pricePerCanCell = row.insertCell();
+            pricePerCanCell.textContent = `$${pricePerCan.toFixed(2)}`;
+
+            const rowTotalCell = row.insertCell();
+            rowTotalCell.textContent = `$${rowTotal.toFixed(2)}`;
+            rowTotalCell.classList.add('font-semibold'); // Make total cost bold
+        }
+
+        /**
+         * Handles the click event for the "Add Entry" button.
+         * Validates input, calculates costs, and adds a new row to the table.
+         */
+        addEntryBtn.addEventListener('click', () => {
+            const date = entryDateInput.value;
+            const brand = brandInput.value.trim();
+            const quantity = parseFloat(quantityInput.value);
+            const pricePerCan = parseFloat(pricePerCanInput.value);
+
+            // Input Validation
+            if (!date) {
+                showMessage('Please select a date.');
+                return;
+            }
+            if (!brand) {
+                showMessage('Please enter a brand name.');
+                return;
+            }
+            if (isNaN(quantity) || quantity <= 0) {
+                showMessage('Quantity must be a positive number.');
+                return;
+            }
+            if (isNaN(pricePerCan) || pricePerCan <= 0) {
+                showMessage('Price per can must be a positive number.');
+                return;
+            }
+
+            // Calculate total for this entry
+            const rowTotal = quantity * pricePerCan;
+
+            // Add row to the table
+            addTableRow(date, brand, quantity, pricePerCan, rowTotal);
+
+            // Update the overall total
+            totalCost += rowTotal;
+            updateOverallTotal();
+
+            // Clear input fields after adding
+            brandInput.value = '';
+            quantityInput.value = '1';
+            pricePerCanInput.value = '5.00';
+            entryDateInput.value = ''; // Clear date for next entry
+            showMessage('Entry added successfully!', 'success');
+        });
+
+        /**
+         * Handles the click event for the "Clear All Data" button.
+         */
+        clearDataBtn.addEventListener('click', () => {
+            // Confirm with user before clearing (using a custom message box instead of alert)
+            const confirmClear = window.confirm("Are you sure you want to clear all data? This action cannot be undone.");
+            if (confirmClear) {
+                costTableBody.innerHTML = ''; // Clear all rows from the table body
+                totalCost = 0; // Reset total cost
+                updateOverallTotal(); // Update the displayed total
+                showMessage('All data cleared.', 'success');
+            }
+        });
+
+        // Set default date to today
+        entryDateInput.valueAsDate = new Date();
+
+        // Initial update of total
+        updateOverallTotal();
+    </script>
+</body>
+</html>
