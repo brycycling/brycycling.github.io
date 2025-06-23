@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Formatting Cleaner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Text Formatting Cleaner</h1>
+
+        <div class="mb-6">
+            <label for="inputText" class="block text-gray-700 text-sm font-medium mb-2">
+                Paste text here:
+            </label>
+            <textarea
+                id="inputText"
+                class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out resize-y h-40"
+                placeholder="Paste your text here..."
+            ></textarea>
+        </div>
+
+        <div class="mb-6 flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <button
+                id="removeBreaksBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+                Remove Line Breaks
+            </button>
+            <button
+                id="addNumberingBtn"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+                Add List Numbering
+            </button>
+            <button
+                id="removeNumberingBtn"
+                class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+                Remove List Numbering
+            </button>
+        </div>
+
+        <div>
+            <label for="outputText" class="block text-gray-700 text-sm font-medium mb-2">
+                Processed Text:
+            </label>
+            <textarea
+                id="outputText"
+                class="w-full p-3 border border-gray-300 rounded-md bg-gray-50 resize-y h-40"
+                readonly
+                placeholder="Your processed text will appear here..."
+            ></textarea>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputTextarea = document.getElementById('inputText');
+            const outputTextarea = document.getElementById('outputText');
+            const removeBreaksButton = document.getElementById('removeBreaksBtn');
+            const addNumberingButton = document.getElementById('addNumberingBtn');
+            const removeNumberingButton = document.getElementById('removeNumberingBtn');
+
+            // Function to handle line break removal
+            const removeLineBreaks = (text) => {
+                let processedText = text
+                    // Handle hyphenated words broken by a line break (e.g., "word-", "\n", "cont.")
+                    .replace(/-\s*\n(?=\w)/g, '')
+                    // Handle line breaks within a paragraph (e.g., "some text\nmore text")
+                    // This specifically targets newlines NOT ending a sentence, followed by a lowercase letter.
+                    // This helps preserve paragraph breaks that are intentional (e.g., after a period).
+                    .replace(/(?<![\.\!\?])\n(?=[a-z])/g, ' ')
+                    // Handle any remaining single newlines (e.g., those between sentences or short lines)
+                    // Replace them with a single space.
+                    .replace(/\n/g, ' ')
+                    // Replace multiple spaces with a single space
+                    .replace(/\s+/g, ' ')
+                    // Trim leading/trailing whitespace
+                    .trim();
+                return processedText;
+            };
+
+            // Function to add numbering to lines
+            const addListNumbering = (text) => {
+                const lines = text.split('\n');
+                let numberedText = [];
+                let counter = 1;
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine) { // Only number non-empty lines
+                        numberedText.push(`${counter}. ${trimmedLine}`);
+                        counter++;
+                    } else {
+                        numberedText.push(line); // Preserve blank lines
+                    }
+                });
+                return numberedText.join('\n');
+            };
+
+            // Function to remove numbering from lines
+            const removeListNumbering = (text) => {
+                const lines = text.split('\n');
+                let cleanedLines = [];
+                const numberingRegex = new RegExp(
+                    // Matches "1.", "1. ", "1)", "1) ", "a.", "a. ", "a)", "a) ", "I.", "I. ", "I)", "I) ",
+                    // "-", "- ", "*", "* ", followed by optional whitespace.
+                    /^(\s*\d+\.|\s*\d+\)|\s*[a-zA-Z]\.|\s*[a-zA-Z]\)|\s*[IVXLCDM]+\.|\s*[IVXLCDM]+\)|\s*[-*]\s*)\s*/
+                );
+
+                lines.forEach(line => {
+                    // Remove leading numbering or bullet points
+                    let cleanedLine = line.replace(numberingRegex, '').trim();
+                    cleanedLines.push(cleanedLine);
+                });
+                return cleanedLines.join('\n');
+            };
+
+            // Event Listeners for buttons
+            removeBreaksButton.addEventListener('click', () => {
+                const originalText = inputTextarea.value;
+                outputTextarea.value = removeLineBreaks(originalText);
+            });
+
+            addNumberingButton.addEventListener('click', () => {
+                // Apply numbering to the *current content of the input textarea*
+                // This allows applying numbering after line breaks are removed, or on original text
+                const textToNumber = inputTextarea.value;
+                outputTextarea.value = addListNumbering(textToNumber);
+            });
+
+            removeNumberingButton.addEventListener('click', () => {
+                // Remove numbering from the *current content of the input textarea*
+                const textToRemoveNumbering = inputTextarea.value;
+                outputTextarea.value = removeListNumbering(textToRemoveNumbering);
+            });
+        });
+    </script>
+</body>
+</html>
