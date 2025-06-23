@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Line Break Remover</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">PDF Line Break Remover</h1>
+
+        <div class="mb-6">
+            <label for="inputText" class="block text-gray-700 text-sm font-medium mb-2">
+                Paste text from PDF here:
+            </label>
+            <textarea
+                id="inputText"
+                class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out resize-y h-40"
+                placeholder="Paste your text here..."
+            ></textarea>
+        </div>
+
+        <div class="mb-6 text-center">
+            <button
+                id="removeBreaksBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+                Remove Line Breaks
+            </button>
+        </div>
+
+        <div>
+            <label for="outputText" class="block text-gray-700 text-sm font-medium mb-2">
+                Processed Text:
+            </label>
+            <textarea
+                id="outputText"
+                class="w-full p-3 border border-gray-300 rounded-md bg-gray-50 resize-y h-40"
+                readonly
+                placeholder="Your processed text will appear here..."
+            ></textarea>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputTextarea = document.getElementById('inputText');
+            const outputTextarea = document.getElementById('outputText');
+            const removeBreaksButton = document.getElementById('removeBreaksBtn');
+
+            removeBreaksButton.addEventListener('click', () => {
+                let originalText = inputTextarea.value;
+
+                // Step 1: Remove common PDF line breaks (hyphen followed by newline, or just newline)
+                // This regex looks for:
+                //   1. A hyphen followed by a newline (\n) and then a word character (\w) - common for hyphenated words broken across lines
+                //      Replaces it with just the word character (effectively removing hyphen and newline)
+                //   2. Any newline character (\n) not preceded by a period, exclamation mark, or question mark,
+                //      followed by a lowercase letter (to avoid joining sentences).
+                //      Replaces it with a space.
+                //   3. Any remaining newline characters (\n) - typically for paragraph breaks, replace with two newlines for clarity.
+                //   4. Multiple spaces in a row are replaced by a single space.
+                let processedText = originalText
+                    // Handle hyphenated words broken by a line break (e.g., "word-", "\n", "cont.")
+                    .replace(/-\s*\n(?=\w)/g, '')
+                    // Handle line breaks within a paragraph (e.g., "some text\nmore text")
+                    // This specifically targets newlines NOT ending a sentence, followed by a lowercase letter.
+                    // This helps preserve paragraph breaks that are intentional (e.g., after a period).
+                    .replace(/(?<![\.\!\?])\n(?=[a-z])/g, ' ')
+                    // Handle any remaining single newlines (e.g., those between sentences or short lines)
+                    // Replace them with a single space.
+                    .replace(/\n/g, ' ')
+                    // Replace multiple spaces with a single space
+                    .replace(/\s+/g, ' ')
+                    // Trim leading/trailing whitespace
+                    .trim();
+
+
+                outputTextarea.value = processedText;
+            });
+        });
+    </script>
+</body>
+</html>
