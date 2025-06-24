@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoNOS Scoring Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to ensure 'Inter' font and smooth scrolling */
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* Tooltip container for score numbers (0-4) */
+        .score-tooltip-group {
+            position: relative;
+        }
+
+        /* Tooltip text for score numbers */
+        .score-tooltip-group .tooltip-text {
+            visibility: hidden;
+            width: 380px; /* Increased width to fit all descriptions */
+            background-color: #333;
+            color: #fff;
+            text-align: left; /* Changed to left for readability of descriptions */
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 110%; /* Position above the score numbers */
+            left: 50%;
+            transform: translateX(-50%); /* Center the tooltip horizontally */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Added shadow for better visibility */
+        }
+
+        .score-tooltip-group .tooltip-text p {
+            margin-bottom: 5px; /* Spacing between descriptions */
+        }
+        .score-tooltip-group .tooltip-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Tooltip arrow for score numbers */
+        .score-tooltip-group .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        /* Show the tooltip text when you hover over the score group */
+        .score-tooltip-group:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Specific styles for Item 8 options popup */
+        .item8-options-tooltip-group {
+            position: relative;
+        }
+
+        .item8-options-tooltip-group .item8-popup-content {
+            visibility: hidden;
+            width: 250px; /* Can adjust if needed */
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 110%; /* Position above the options */
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .item8-options-tooltip-group .item8-popup-content p {
+            margin-bottom: 3px;
+        }
+        .item8-options-tooltip-group .item8-popup-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .item8-options-tooltip-group .item8-popup-content::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .item8-options-tooltip-group:hover .item8-popup-content {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8 px-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6 mb-8 text-center">
+        <h1 class="text-4xl font-extrabold text-blue-800 mb-2">HoNOS Scoring Assistant</h1>
+        <p class="text-gray-600 text-lg">Health of the Nation Outcome Scales (HoNOS)</p>
+        <p class="text-sm text-gray-500 mt-2">Rate each item based on the most severe problem observed in the last 2 weeks (unless specified otherwise).</p>
+    </header>
+
+    <!-- HoNOS Items Container - Main content area -->
+    <main class="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6">
+        <!-- Header Row for the grid -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center mb-4 pb-2 border-b border-gray-200 font-bold text-gray-700">
+            <div class="text-left">Item Description</div>
+            <div class="text-right"></div> <!-- Placeholder for Item 8 type alignment -->
+            <div class="text-center">Score</div>
+            <div class="text-center">Selected Score</div>
+        </div>
+
+        <!-- Item 1 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item1">
+            <div class="col-span-2 text-gray-800">1. Overactive, aggressive, disruptive or agitated behaviour</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item1', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item1', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item1', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item1', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item1', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No problems of this kind during the period rated.</p>
+                    <p><strong>1:</strong> Minor irritability, quarrels, restlessness, etc., not requiring action.</p>
+                    <p><strong>2:</strong> Includes aggressive gestures, pushing or pestering others; threats or verbal aggression; minor property damage; marked agitation.</p>
+                    <p><strong>3:</strong> Physically aggressive to others or animals; destruction of property; threatening manner.</p>
+                    <p><strong>4:</strong> At least one serious physical attack on others or on animals; fire-setting or extensive property destruction; serious intimidation or obscene behavior.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item1" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item2">
+            <div class="col-span-2 text-gray-800">2. Non-accidental self-injury</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item2', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item2', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item2', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item2', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item2', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No problems of this kind during the period rated.</p>
+                    <p><strong>1:</strong> Fleeting thoughts about ending it all but little risk; no self-harm.</p>
+                    <p><strong>2:</strong> Mild risk during the period; includes non-hazardous self-harm (e.g., wrist-scratching, minor cutting).</p>
+                    <p><strong>3:</strong> Moderate to serious risk of deliberate self-harm, including preparatory acts (e.g., collecting tablets).</p>
+                    <p><strong>4:</strong> Serious suicidal attempt and/or serious deliberate self-injury requiring medical attention.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item2" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item3">
+            <div class="col-span-2 text-gray-800">3. Problem-drinking or drug-taking</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item3', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item3', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item3', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item3', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item3', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No problems of this kind during the period rated.</p>
+                    <p><strong>1:</strong> Some over-indulgence but within social norm.</p>
+                    <p><strong>2:</strong> Loss of control of drinking or drug-taking, but not seriously addicted.</p>
+                    <p><strong>3:</strong> Marked craving or dependence on alcohol or drugs with frequent loss of control, risk-taking under the influence, etc.</p>
+                    <p><strong>4:</strong> Incapacitated by alcohol/drug problems; severe withdrawal symptoms.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item3" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item4">
+            <div class="col-span-2 text-gray-800">4. Cognitive problems</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item4', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item4', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item4', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item4', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item4', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No problems of this kind during the period rated.</p>
+                    <p><strong>1:</strong> Minor problems with memory or understanding, e.g. forgets names occasionally.</p>
+                    <p><strong>2:</strong> Mild but definite problems e.g. has lost the way in a familiar place or failed to recognize a familiar person; sometimes mixed up about simple decisions.</p>
+                    <p><strong>3:</strong> Marked disorientation in time, place or person, bewildered by everyday events; speech is sometimes incoherent; mental slowing.</p>
+                    <p><strong>4:</strong> Severe disorientation e.g. unable to recognize familiar faces, speech incomprehensible.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item4" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 5 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item5">
+            <div class="col-span-2 text-gray-800">5. Physical illness or disability problems</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item5', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item5', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item5', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item5', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item5', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No physical health problem during the period rated.</p>
+                    <p><strong>1:</strong> Minor health problem during the period (e.g., cold, non-serious fall, etc.).</p>
+                    <p><strong>2:</strong> Physical health problem imposes mild restriction on mobility and activity.</p>
+                    <p><strong>3:</strong> Moderate degree of restriction on activity due to physical health problem.</p>
+                    <p><strong>4:</strong> Severe or complete incapacity due to physical health problem.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item5" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 6 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item6">
+            <div class="col-span-2 text-gray-800">6. Problems with hallucinations and delusions</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item6', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item6', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item6', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item6', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item6', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No evidence of hallucinations or delusions during the period rated.</p>
+                    <p><strong>1:</strong> Somewhat odd or eccentric beliefs not in keeping with cultural norms.</p>
+                    <p><strong>2:</strong> Delusions of hallucinations (e.g. voices, visions) are present, but there is little distress to patient or manifestation in bizarre behaviour, i.e. clinically present but mild.</p>
+                    <p><strong>3:</strong> Marked preoccupation with delusions or hallucinations, causing much distress and/or manifested in obviously bizarre behaviour, i.e. moderately severe clinical problem.</p>
+                    <p><strong>4:</strong> Mental state and behaviour is seriously and adversely affected by delusions or hallucinations, with severe impact on patient.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item6" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 7 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item7">
+            <div class="col-span-2 text-gray-800">7. Problems with depressed mood</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item7', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item7', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item7', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item7', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item7', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No problems associated with depressed mood during the period rated.</p>
+                    <p><strong>1:</strong> Gloomy; or minor changes in mood.</p>
+                    <p><strong>2:</strong> Mild but definite depression and distress: e.g. feelings of guilt; loss of self-esteem.</p>
+                    <p><strong>3:</strong> Depression with inappropriate self-blame, preoccupied with feelings of guilt.</p>
+                    <p><strong>4:</strong> Very severe depression, incapacitating, with profound loss of interest, energy, and significant vegetative symptoms.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item7" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 8 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item8">
+            <div class="text-gray-800">8. Other mental and behavioural problems</div>
+            <div class="flex items-center justify-end"> <!-- This div is the second column -->
+                <div class="item8-options-tooltip-group flex flex-wrap gap-x-3 gap-y-1 text-blue-700 font-semibold text-sm">
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('A')">A</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('B')">B</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('C')">C</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('D')">D</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('E')">E</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('F')">F</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('G')">G</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('H')">H</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('I')">I</span>
+                    <span class="cursor-pointer hover:underline" onclick="selectItem8Type('J')">J</span>
+                    <div class="item8-popup-content">
+                        <p><strong>A:</strong> Phobic</p>
+                        <p><strong>B:</strong> Anxiety</p>
+                        <p><strong>C:</strong> Obsessive-compulsive</p>
+                        <p><strong>D:</strong> Stress</p>
+                        <p><strong>E:</strong> Dissociative</p>
+                        <p><strong>F:</strong> Somatoform</p>
+                        <p><strong>G:</strong> Eating</p>
+                        <p><strong>H:</strong> Sleep</p>
+                        <p><strong>I:</strong> Sexual</p>
+                        <p><strong>J:</strong> Other (specify)</p>
+                    </div>
+                </div>
+                <input type="text" id="score_item8_type" class="w-10 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-4" readonly>
+            </div>
+            <div class="score-tooltip-group flex justify-center space-x-2"> <!-- Third column -->
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item8', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item8', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item8', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item8', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item8', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No evidence of any of these problems during period rated.</p>
+                    <p><strong>1:</strong> Minor non-clinical problems.</p>
+                    <p><strong>2:</strong> A problem is clinically present at a mild level (e.g., patient/client has a degree of control).</p>
+                    <p><strong>3:</strong> Moderately severe level of problem; occasional severe attack or distress, with loss of control.</p>
+                    <p><strong>4:</strong> Severe problem dominates most activities.</p>
+                </div>
+            </div>
+            <div class="flex justify-center"> <!-- Fourth column -->
+                <input type="text" id="score_item8" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 9 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item9">
+            <div class="col-span-2 text-gray-800">9. Problems with relationships</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item9', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item9', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item9', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item9', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item9', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No significant problems during the period.</p>
+                    <p><strong>1:</strong> Minor non-clinical problem.</p>
+                    <p><strong>2:</strong> Definite problems in making or sustaining supportive relationships; evident to others.</p>
+                    <p><strong>3:</strong> Persisting major problems due to active or passive withdrawal from social relationships; relationships that provide little or no comfort or support.</p>
+                    <p><strong>4:</strong> Severe and distressing social isolation and/or withdrawal from social relationships.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item9" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 10 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item10">
+            <div class="col-span-2 text-gray-800">10. Problems with activities of daily living</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item10', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item10', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item10', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item10', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item10', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> No problems during the period rated; good ability to function in all areas.</p>
+                    <p><strong>1:</strong> Minor problems only (e.g., untidy, disorganized).</p>
+                    <p><strong>2:</strong> Self-care adequate but major lack of performance of one or more complex skills (e.g., budgeting, finding housing, recreation, use of transport, shopping).</p>
+                    <p><strong>3:</strong> Major problems in one or more area of self-care (eating, washing, dressing, toilet) as well as major inability to perform several complex skills.</p>
+                    <p><strong>4:</strong> Severe disability or incapacity in all or nearly all areas of self-care and complex skills.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item10" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 11 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2 border-b border-gray-100" id="item11">
+            <div class="col-span-2 text-gray-800">11. Problems with living conditions</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item11', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item11', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item11', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item11', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item11', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> Accommodation and living conditions are acceptable.</p>
+                    <p><strong>1:</strong> Accommodation is reasonably acceptable although there are minor problems.</p>
+                    <p><strong>2:</strong> Significant problems with one or more aspects of the accommodation.</p>
+                    <p><strong>3:</strong> Distressing multiple problems with accommodation (e.g., some basic necessities absent; housing environment has minimal or no facilities to improve patient's independence).</p>
+                    <p><strong>4:</strong> Accommodation is unacceptable; homelessness or at severe risk of homelessness.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item11" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+
+        <!-- Item 12 -->
+        <div class="grid grid-cols-honos-layout-all gap-4 items-center py-2" id="item12">
+            <div class="col-span-2 text-gray-800">12. Problems with occupation and activities</div>
+            <div class="score-tooltip-group flex justify-center space-x-2">
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item12', 0)">0</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item12', 1)">1</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item12', 2)">2</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item12', 3)">3</span>
+                <span class="text-blue-700 font-semibold cursor-pointer" onclick="selectScore('item12', 4)">4</span>
+                <div class="tooltip-text">
+                    <p><strong>0:</strong> Patient's day-time environment is acceptable and supportive of self-help.</p>
+                    <p><strong>1:</strong> Minor or temporary problems requiring little action (e.g., late cheques; reasonable facilities available but not always at desired times).</p>
+                    <p><strong>2:</strong> Limited choice of activities - lack of permanent address or insufficient career or professional support; helpful day setting available but for very limited hours.</p>
+                    <p><strong>3:</strong> Marked deficiency in skilled services available to help minimize level of existing disability; no opportunities to use intact skills or add new ones.</p>
+                    <p><strong>4:</strong> Lack of opportunity for daytime activities makes patient's problems worse.</p>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <input type="text" id="score_item12" class="w-16 h-8 text-center border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript for score selection and custom grid layout -->
+    <script>
+        // Function to set the score in the main score input field
+        function selectScore(itemId, score) {
+            const inputField = document.getElementById('score_' + itemId);
+            if (inputField) {
+                inputField.value = score;
+            }
+        }
+
+        // Function to set the problem type for Item 8
+        function selectItem8Type(type) {
+            const typeInputField = document.getElementById('score_item8_type');
+            if (typeInputField) {
+                typeInputField.value = type;
+            }
+        }
+
+        // Add a custom grid column definition for Tailwind CSS
+        tailwind.config = {
+            theme: {
+                extend: {
+                    gridTemplateColumns: {
+                        // Define a 4-column layout for all items
+                        // 1st column: for item description (flexible width)
+                        // 2nd column: for item 8 types (auto width, right aligned)
+                        // 3rd column: for score options (auto width, centered)
+                        // 4th column: for selected score input (auto width, centered)
+                        'honos-layout-all': 'minmax(200px, 1fr) auto auto auto',
+                    }
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
