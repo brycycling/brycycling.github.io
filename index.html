@@ -1,15 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bryan's Side Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-text-color: #333;
+            --secondary-text-color: #666;
+            --background-color: #f8f6f2; /* Off-white/cream from image */
+            --border-color: #d1cbc2; /* Subtle light brown/grey */
+            --button-text-color: #555;
+            --button-hover-bg: #e0dcd7; /* Slightly darker cream on hover */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif; /* For body text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--primary-text-color);
+            line-height: 1.6;
+        }
+        .container {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif; /* For headings */
+            font-size: 3.5em; /* Larger, more elegant */
+            margin-bottom: 50px; /* More spacing */
+            color: var(--primary-text-color);
+            letter-spacing: +0.010em;
+            font-weight: 100; /* Made the font thinner */
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 50px;
+        }
+        li {
+            margin-bottom: 20px; /* More spacing between links */
+        }
+        a {
+            text-decoration: none;
+            color: var(--button-text-color);
+            font-size: 1.1em;
+            padding: 12px 25px; /* Larger click area */
+            border: 1px solid var(--border-color); /* Subtle border */
+            border-radius: 8px; /* Slightly more rounded */
+            transition: all 0.3s ease;
+            display: inline-block;
+            min-width: 180px; /* Ensure consistent button width */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle shadow */
+        }
+        a:hover {
+            background-color: var(--button-hover-bg);
+            border-color: var(--button-hover-bg);
+            color: var(--primary-text-color);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px); /* Slight lift effect */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+                margin-bottom: 30px;
+            }
+            a {
+                padding: 10px 20px;
+                font-size: 1em;
+                min-width: 150px;
+            }
+        }
+    </style>
+</head>
 <body>
-<h1>Bryan's Tools</h1>
-
-<!-- Create a list of links-->
-<ul>
-    <li><a href="https://note-forge.lovable.app/">Note Forge</a></li>
-    <li><a href="http://mha-calc.lovable.app/">MHA Calculator</a></li>
-    <li><a href="https://prismatic-dragon-012014.netlify.app/">AUA-LTC Tool</a></li>
-    <li><a href="https://brycycling.github.io/textcleaner.html">Text Cleaner</a></li>
-    <li><a href="https://brycycling.github.io/honos.html">HONOS Tool</a></li>
-
+    <div class="container">
+        <h1>Bryan's Side Tools</h1>
+        <ul>
+            <li><a href="https://note-forge.lovable.app/">Note Forge</a></li>
+            <li><a href="http://mha-calc.lovable.app/">MHA Calculator</a></li>
+            <li><a href="https://prismatic-dragon-012014.netlify.app/">AUA-LTC Tool</a></li>
+            <li><a href="https://brycycling.github.io/textcleaner.html">Text Cleaner</a></li>
+            <li><a href="https://brycycling.github.io/honos.html">HONOS Tool</a></li>
+        </ul>
+    </div>
 </body>
 </html>
