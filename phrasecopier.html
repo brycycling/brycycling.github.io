@@ -1,0 +1,381 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy } from 'firebase/firestore';
+
+function App() {
+    const [phrases, setPhrases] = useState([]);
+    const [newPhraseText, setNewPhraseText] = useState('');
+    const [db, setDb] = useState(null);
+    const [auth, setAuth] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+    const [message, setMessage] = useState(''); // For user messages like "Copied!"
+    const draggedItem = useRef(null);
+    const draggedOverItem = useRef(null);
+    const [editingPhraseId, setEditingPhraseId] = useState(null); // State to track which phrase is being edited
+    const [currentEditText, setCurrentEditText] = useState(''); // State for the text in the editing input
+    const textareaRef = useRef(null); // Ref for the textarea to adjust height
+
+    // Initialize Firebase and handle authentication
+    useEffect(() => {
+        try {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const app = initializeApp(firebaseConfig);
+            const firestore = getFirestore(app);
+            const authentication = getAuth(app);
+
+            setDb(firestore);
+            setAuth(authentication);
+
+            onAuthStateChanged(authentication, async (user) => {
+                if (user) {
+                    setUserId(user.uid);
+                    setIsAuthReady(true);
+                } else {
+                    // Sign in anonymously if no user is authenticated
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(authentication, initialAuthToken);
+                    } else {
+                        await signInAnonymously(authentication);
+                    }
+                    // onAuthStateChanged will be triggered again after sign-in, setting the userId
+                }
+            });
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            setMessage("Failed to initialize app. Please try again.");
+        }
+    }, []);
+
+    // Listen for real-time updates from Firestore
+    useEffect(() => {
+        if (!db || !userId || !isAuthReady) return;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const phrasesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/phrases`);
+        // Note: Firestore's orderBy can be complex with dynamic indices.
+        // For simplicity and avoiding index issues, we'll fetch and sort in memory.
+        const q = query(phrasesCollectionRef);
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedPhrases = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            // Sort phrases by 'order' property locally after fetching
+            fetchedPhrases.sort((a, b) => a.order - b.order);
+            setPhrases(fetchedPhrases);
+        }, (error) => {
+            console.error("Error fetching phrases:", error);
+            setMessage("Failed to load phrases.");
+        });
+
+        // Clean up the listener when the component unmounts
+        return () => unsubscribe();
+    }, [db, userId, isAuthReady]);
+
+    // Effect to adjust textarea height when editing text changes
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'; // Reset height
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'; // Set to scroll height
+        }
+    }, [currentEditText, editingPhraseId]); // Adjust when text or editing status changes
+
+
+    // Function to add a new phrase
+    const addPhrase = async () => {
+        if (newPhraseText.trim() === '' || !db || !userId) {
+            setMessage("Phrase cannot be empty.");
+            return;
+        }
+
+        try {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const phrasesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/phrases`);
+            const newOrder = phrases.length > 0 ? Math.max(...phrases.map(p => p.order)) + 1 : 0;
+
+            await addDoc(phrasesCollectionRef, {
+                text: newPhraseText,
+                order: newOrder,
+                backgroundColor: '#ffffff' // Re-added default background color
+            });
+            setNewPhraseText('');
+            setMessage("Phrase added!");
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            setMessage("Failed to add phrase.");
+        }
+    };
+
+    // Function to copy phrase to clipboard
+    const copyToClipboard = (text) => {
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; // Avoid scrolling to bottom
+            textarea.style.opacity = '0'; // Hide it
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy'); // Fallback for older browsers
+            document.body.removeChild(textarea);
+            setMessage('Copied to clipboard!');
+            setTimeout(() => setMessage(''), 2000); // Clear message after 2 seconds
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            setMessage('Failed to copy to clipboard.');
+        }
+    };
+
+    // Drag and Drop handlers
+    const handleDragStart = (e, index) => {
+        draggedItem.current = index;
+    };
+
+    const handleDragEnter = (e, index) => {
+        draggedOverItem.current = index;
+    };
+
+    const handleDrop = async (e) => {
+        const newPhrases = [...phrases];
+        const draggedContent = newPhrases[draggedItem.current];
+        newPhrases.splice(draggedItem.current, 1); // Remove from old position
+        newPhrases.splice(draggedOverItem.current, 0, draggedContent); // Insert at new position
+
+        // Update the order property in Firestore for all affected documents
+        if (db && userId) {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const batchUpdates = newPhrases.map(async (phrase, index) => {
+                const phraseRef = doc(db, `artifacts/${appId}/users/${userId}/phrases`, phrase.id);
+                return updateDoc(phraseRef, { order: index });
+            });
+
+            try {
+                await Promise.all(batchUpdates);
+                setPhrases(newPhrases); // Update local state after successful Firestore update
+                setMessage("Phrases reordered!");
+            } catch (error) {
+                console.error("Error updating phrase order in Firestore:", error);
+                setMessage("Failed to reorder phrases.");
+            }
+        }
+
+        draggedItem.current = null;
+        draggedOverItem.current = null;
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault(); // Necessary to allow drop
+    };
+
+    const deletePhrase = async (id) => {
+        if (!db || !userId) return;
+
+        try {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/phrases`, id));
+            // Re-fetch or update local state to reflect deletion
+            setMessage("Phrase deleted!");
+            setEditingPhraseId(null); // Exit editing mode if the edited phrase is deleted
+        } catch (error) {
+            console.error("Error deleting phrase:", error);
+            setMessage("Failed to delete phrase.");
+        }
+    };
+
+    // Function to update phrase background color
+    const updatePhraseColor = async (id, newColor) => {
+        if (!db || !userId) return;
+
+        try {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const phraseRef = doc(db, `artifacts/${appId}/users/${userId}/phrases`, id);
+            await updateDoc(phraseRef, { backgroundColor: newColor });
+            setMessage("Color updated!");
+        } catch (error) {
+            console.error("Error updating phrase color:", error);
+            setMessage("Failed to update color.");
+        }
+    };
+
+    // Function to enable editing mode for a phrase
+    const enableEdit = (phrase) => {
+        setEditingPhraseId(phrase.id);
+        setCurrentEditText(phrase.text);
+    };
+
+    // Function to save edited phrase text
+    const saveEditedPhrase = async (id) => {
+        if (currentEditText.trim() === '' || !db || !userId) {
+            setMessage("Phrase cannot be empty.");
+            return;
+        }
+
+        try {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const phraseRef = doc(db, `artifacts/${appId}/users/${userId}/phrases`, id);
+            await updateDoc(phraseRef, { text: currentEditText });
+            setEditingPhraseId(null); // Exit editing mode
+            setMessage("Phrase updated!");
+        } catch (error) {
+            console.error("Error updating phrase text:", error);
+            setMessage("Failed to update phrase.");
+        }
+    };
+
+    // Function to cancel editing
+    const cancelEdit = () => {
+        setEditingPhraseId(null);
+        setCurrentEditText('');
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-200 to-blue-200 flex flex-col items-center justify-center p-4 font-inter text-gray-700">
+            <div className="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg space-y-4">
+                <h1 className="text-3xl font-bold text-center text-blue-800 mb-4">
+                    Phrase Copier
+                </h1>
+
+                {userId && (
+                    <div className="text-xs text-gray-500 text-center mb-3">
+                        User ID: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{userId}</span>
+                    </div>
+                )}
+
+                {message && (
+                    <div className="bg-blue-50 text-blue-700 p-2 rounded-md text-center text-sm font-medium">
+                        {message}
+                    </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 mb-5">
+                    <input
+                        type="text"
+                        className="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-400 focus:border-transparent text-base"
+                        placeholder="Add a new phrase..."
+                        value={newPhraseText}
+                        onChange={(e) => setNewPhraseText(e.target.value)}
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') addPhrase();
+                        }}
+                    />
+                    <button
+                        onClick={addPhrase}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition duration-300 ease-in-out transform hover:scale-105 text-base"
+                    >
+                        Add Phrase
+                    </button>
+                </div>
+
+                <div className="space-y-3">
+                    {phrases.length === 0 ? (
+                        <p className="text-center text-gray-500 text-base">No phrases yet! Add some above.</p>
+                    ) : (
+                        phrases.map((phrase, index) => (
+                            <div
+                                key={phrase.id}
+                                className="flex items-center p-3 rounded-lg shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing"
+                                style={{ backgroundColor: phrase.backgroundColor || '#ffffff' }} // Apply background color
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragEnter={(e) => handleDragEnter(e, index)}
+                                onDragEnd={handleDrop}
+                                onDragOver={handleDragOver} // Allow dropping
+                            >
+                                <span className="text-gray-400 mr-2 text-lg">&#9776;</span> {/* Drag handle icon */}
+                                {editingPhraseId === phrase.id ? (
+                                    <>
+                                        <textarea
+                                            ref={textareaRef} // Assign ref to the textarea
+                                            value={currentEditText}
+                                            onChange={(e) => setCurrentEditText(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) { // Save on Enter, new line on Shift+Enter
+                                                    e.preventDefault(); // Prevent new line on Enter
+                                                    saveEditedPhrase(phrase.id);
+                                                }
+                                            }}
+                                            onBlur={() => saveEditedPhrase(phrase.id)} // Save on blur
+                                            className="flex-grow p-1 border border-blue-300 rounded-md focus:ring-1 focus:ring-blue-400 text-base resize-none overflow-hidden min-h-[38px]" // Added resize-none and min-h
+                                            autoFocus
+                                            rows="1" // Start with one row
+                                        />
+                                        {/* Color picker input and button */}
+                                        <div className="relative flex items-center ml-2"> {/* Container for Color button and picker */}
+                                            <button
+                                                onClick={() => document.getElementById(`color-picker-${phrase.id}`).click()}
+                                                onMouseDown={(e) => e.preventDefault()} // Prevent blur on textarea
+                                                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1.5 px-3 rounded-lg shadow-sm transition duration-200 ease-in-out text-sm flex items-center justify-center"
+                                                title="Change background color"
+                                            >
+                                                Color
+                                            </button>
+                                            <input
+                                                type="color"
+                                                id={`color-picker-${phrase.id}`}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" // Hidden but clickable
+                                                value={phrase.backgroundColor || '#ffffff'}
+                                                onChange={(e) => updatePhraseColor(phrase.id, e.target.value)}
+                                                onMouseDown={(e) => e.preventDefault()} // Prevent blur on textarea
+                                            />
+                                        </div>
+
+                                        <button
+                                            onClick={() => saveEditedPhrase(phrase.id)}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition duration-200 ease-in-out ml-2 text-sm"
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            onClick={cancelEdit}
+                                            className="bg-gray-400 hover:bg-gray-500 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition duration-200 ease-in-out ml-1 text-sm"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => deletePhrase(phrase.id)}
+                                            className="bg-red-500 hover:bg-red-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition duration-200 ease-in-out ml-1 flex items-center text-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="flex-grow text-gray-700 text-base whitespace-pre-wrap">{phrase.text}</p>
+                                        <button
+                                            onClick={() => enableEdit(phrase)}
+                                            className="bg-blue-400 hover:bg-blue-500 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition duration-200 ease-in-out mr-2 flex items-center text-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.827-2.828z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => copyToClipboard(phrase.text)}
+                                            className="bg-green-500 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition duration-200 ease-in-out flex items-center text-sm"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                                                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                                            </svg>
+                                            Copy
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+            <script src="https://cdn.tailwindcss.com"></script>
+        </div>
+    );
+}
+
+export default App;
