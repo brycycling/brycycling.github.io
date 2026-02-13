@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #faf6f1;
+            color: #2c2c2c;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            letter-spacing: -0.5px;
+        }
+
+        nav {
+            margin-bottom: 3rem;
+        }
+
+        .nav-item {
+            display: inline-block;
+            margin-right: 2rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+            border: none;
+            background: none;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            color: #2c2c2c;
+        }
+
+        .nav-item.active {
+            color: #2c2c2c;
+            border-bottom: 1px solid #2c2c2c;
+            padding-bottom: 2px;
+        }
+
+        .content-area {
+            min-height: 200px;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        li strong {
+            font-weight: 500;
+            color: #2c2c2c;
+        }
+
+        a {
+            color: #2c2c2c;
+            text-decoration: none;
+            border-bottom: 1px solid #2c2c2c;
+            transition: opacity 0.3s ease;
+        }
+
+        a:hover {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Name</h1>
+        
+        <nav>
+            <button class="nav-item" data-section="about">about</button>
+            <button class="nav-item" data-section="projects">projects</button>
+            <button class="nav-item" data-section="connect">connect</button>
+        </nav>
+
+        <div class="content-area">
+            <div id="about" class="content-section">
+                <ul>
+                    <li>Designer and developer based in [Your City]</li>
+                    <li>Passionate about creating thoughtful digital experiences</li>
+                    <li>Background in [Your Field/Expertise]</li>
+                    <li>Currently exploring [Current Interest]</li>
+                </ul>
+            </div>
+
+            <div id="projects" class="content-section">
+                <ul>
+                    <li><strong>Project One</strong> — A brief description of your first project</li>
+                    <li><strong>Project Two</strong> — A brief description of your second project</li>
+                    <li><strong>Project Three</strong> — A brief description of your third project</li>
+                    <li><strong>Project Four</strong> — A brief description of your fourth project</li>
+                    <li><a href="https://note-forge.lovable.app/">Note Forge</a></li>
+                    <li><a href="https://mha-certificate-calc-ee9s.bolt.host">MHA Calculator</a></li>
+                    <li><a href="https://aualtc.ca">AUA-LTC Tool</a></li>
+                    <li><a href="https://brycycling.github.io/textcleaner.html">Text Cleaner</a></li>
+                    <li><a href="https://brycycling.github.io/honos.html">HONOS Tool</a></li>
+                    <li><a href="https://brycycling.github.io/phrasecopier.html">Phrase Copier</a></li>
+                    <li><a href="https://brycycling.github.io/vchpsychiatrycall.html">VCH Psychiatry On-Call</a></li>
+                </ul>
+            </div>
+
+            <div id="connect" class="content-section">
+                <ul>
+                    <li><a href="mailto:your.email@example.com">email</a></li>
+                    <li><a href="https://twitter.com/yourhandle" target="_blank">twitter</a></li>
+                    <li><a href="https://github.com/yourhandle" target="_blank">github</a></li>
+                    <li><a href="https://linkedin.com/in/yourhandle" target="_blank">linkedin</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove active class from all nav items and sections
+                navItems.forEach(nav => nav.classList.remove('active'));
+                contentSections.forEach(section => section.classList.remove('active'));
+
+                // Add active class to clicked nav item
+                item.classList.add('active');
+
+                // Show corresponding content section
+                const sectionId = item.getAttribute('data-section');
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
